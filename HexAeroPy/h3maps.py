@@ -68,3 +68,17 @@ def choropleth_map(df_aggreg, column_name="value", border_color='black', fill_op
     ).add_to(initial_map)
 
     return initial_map
+
+
+def add_trajectory(map_object, dataframe):
+    """
+    Adds an aircraft trajectory to a Folium map based on coordinates in a Pandas DataFrame.
+
+    Parameters:
+    - map_object: Folium Map instance where the trajectory will be added.
+    - dataframe: Pandas DataFrame containing the trajectory coordinates with columns 'lat' and 'lon'.
+    """
+    # Extracting coordinates from DataFrame
+    coordinates = dataframe[['lat', 'lon']].values.tolist()
+    # Adding a PolyLine to the map to represent the trajectory
+    folium.PolyLine(coordinates, color="blue", weight=2.5, opacity=1).add_to(map_object)
