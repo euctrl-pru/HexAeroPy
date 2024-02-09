@@ -7,7 +7,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,  
     package_data={
-        'HexAeroPy': ['data/*'],  
+        'HexAeroPy': ['data/*', 'data/*/*', 'data/*/*/*'],  
     },
     install_requires=[
         'h3>=3.7.6',
