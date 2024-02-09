@@ -8,7 +8,9 @@ __all__ = ["identify_runways", "choropleth_map", "load_dataset", "add_trajectory
 
 # Import from submodules to make available at the package level
 from .runways import identify_runways
+from .runways import load_dataset
 from .h3maps import choropleth_map
+from .h3maps import add_trajectory
 
 # Initialization code (optional)
 print(f"HexAeroPy version {__version__}.")
