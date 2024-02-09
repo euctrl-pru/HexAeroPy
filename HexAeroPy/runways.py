@@ -11,17 +11,17 @@ import h3
 #pd.set_option('display.max_columns', 500)
 #pd.set_option('display.width', 1000)
 
-def load_dataset(name, type):
+def load_dataset(name, datatype):
     """Load a parquet dataset from the package's data directory.
     
     Parameters:
     name (str): The filename of the dataset to load.
-    type (str): The type of file is either 'runway_hex' or 'airport_hex'
+    datatype (str): The datatype of file is either 'runway_hex', 'airport_hex' or 'test_data'.
 
     Returns:
     DataFrame: A pandas DataFrame containing the dataset.
     """
-    resource_path = '/'.join(('data', type, name))
+    resource_path = '/'.join(('data', datatype, name))
     file_path = pkg_resources.resource_filename('HexAeroPy', resource_path)
     return pd.read_parquet(file_path)
 
@@ -67,7 +67,7 @@ def identify_potential_airports(df, track_id_col = 'id', hex_id_col='hex_id', ap
     """
     Merges aircraft states with airport data based on hex ID (resolution 5).
     """
-    airports_df = load_dataset(name = 'airport_hex_res_5_radius_15_nm.parquet', type = 'airport_hex')
+    airports_df = load_dataset(name = 'airport_hex_res_5_radius_15_nm.parquet', datatype = 'airport_hex')
     airports_df = airports_df[airports_df['type'].isin(apt_types)]
     
     airports_df = airports_df.rename({'id':'apt_id'},axis=1)
@@ -150,7 +150,7 @@ def identify_runways_from_low_trajectories(apt_detections_df, df_f_low_alt):
 
         core_cols_rwy = ['id', 'airport_ref', 'airport_ident', 'gate_id', 'hex_id', 'gate_id_nr','le_ident','he_ident']
 
-        df_rwys = load_dataset(name = f'{apt}.parquet', type = 'runway_hex')
+        df_rwys = load_dataset(name = f'{apt}.parquet', datatype = 'runway_hex')
         df_rwys = df_rwys[core_cols_rwy]
 
         df_hex_rwy = df_single.merge(df_rwys,left_on='hex_id_11', right_on='hex_id', how='left')
