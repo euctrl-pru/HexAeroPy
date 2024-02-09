@@ -11,7 +11,7 @@ from .runways import identify_runways
 from .h3maps import choropleth_map
 
 # Initialization code (optional)
-print(f"Initializing mypackage version {__version__}.")
+#print(f"Initializing Hex version {__version__}.")
 
 # You can also include any package-wide constants or configuration settings here
 #PACKAGE_CONSTANT = "This is a package-wide constant."
