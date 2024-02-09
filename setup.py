@@ -8,7 +8,7 @@ setup(
     include_package_data=True,  
     package_data={
         'mypackage': ['data/*'],  
-    }
+    },
     install_requires=[
         'h3>=3.7.6',
         'pandas>=1.5.2',
