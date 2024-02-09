@@ -1,6 +1,5 @@
 import pandas as pd
-import traffic
-from traffic.data import opensky
+import pkg_resources
 import h3
 
 # Limitation: The current id should represent a flight from ADEP to ADES. If the ID does not represent this, max score vote would mess up the result.
@@ -9,8 +8,22 @@ import h3
 # Limitation: For each track there is not necessarily and airport found
 # Solution: Work with larger Radius or Height in airport detection?
 
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
+#pd.set_option('display.max_columns', 500)
+#pd.set_option('display.width', 1000)
+
+def load_dataset(name, type):
+    """Load a parquet dataset from the package's data directory.
+    
+    Parameters:
+    name (str): The filename of the dataset to load.
+    type (str): The type of file is either 'runway_hex' or 'airport_hex'
+
+    Returns:
+    DataFrame: A pandas DataFrame containing the dataset.
+    """
+    resource_path = '/'.join(('data', type, name))
+    file_path = pkg_resources.resource_filename('HexAeroPy', resource_path)
+    return pd.read_parquet(file_path)
 
 # Add hex_ids 
 def add_statevector_id(df):
@@ -54,8 +67,7 @@ def identify_potential_airports(df, track_id_col = 'id', hex_id_col='hex_id', ap
     """
     Merges aircraft states with airport data based on hex ID (resolution 5).
     """
-    
-    airports_df = pd.read_parquet('../data/airport_hex/airport_hex_res_5.parquet')
+    airports_df = load_dataset(name = 'airport_hex_res_5_radius_15_nm.parquet', type = 'airport_hex')
     airports_df = airports_df[airports_df['type'].isin(apt_types)]
     
     airports_df = airports_df.rename({'id':'apt_id'},axis=1)
@@ -138,7 +150,7 @@ def identify_runways_from_low_trajectories(apt_detections_df, df_f_low_alt):
 
         core_cols_rwy = ['id', 'airport_ref', 'airport_ident', 'gate_id', 'hex_id', 'gate_id_nr','le_ident','he_ident']
 
-        df_rwys = pd.read_parquet(f'../data/runway_hex/{apt}.parquet')
+        df_rwys = load_dataset(name = f'{apt}.parquet', type = 'runway_hex')
         df_rwys = df_rwys[core_cols_rwy]
 
         df_hex_rwy = df_single.merge(df_rwys,left_on='hex_id_11', right_on='hex_id', how='left')
@@ -359,8 +371,8 @@ def identify_runways(df, track_id_col = 'id', longitude_col = 'lon', latitude_co
     return scored_rwy_detections_df,rwy_detections_df
     
 # Trajectories
-df = pd.read_parquet('../data/2023-08-02-11.parquet')
-df['id'] = df['icao24'] + '-' + df['callsign'] + '-' + df['time'].dt.date.apply(str)
-df = df[['id', 'time', 'icao24', 'callsign', 'lat', 'lon', 'baroaltitude']]
+#df = pd.read_parquet('../data/2023-08-02-11.parquet')
+#df['id'] = df['icao24'] + '-' + df['callsign'] + '-' + df['time'].dt.date.apply(str)
+#df = df[['id', 'time', 'icao24', 'callsign', 'lat', 'lon', 'baroaltitude']]
 
-scored_rwy_detections_df, rwy_detections_df = identify_runways(df)
+#scored_rwy_detections_df, rwy_detections_df = identify_runways(df)
