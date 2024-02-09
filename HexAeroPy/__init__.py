@@ -13,8 +13,8 @@ from .h3maps import choropleth_map
 from .h3maps import add_trajectory
 
 # Initialization code (optional)
-print(f"HexAeroPy version {__version__}.")
-print("Brought to you by EUROCONTROL, the European Organisation for the Safety of Air Navigation.")
+#print(f"HexAeroPy version {__version__}.")
+#print("Brought to you by EUROCONTROL, the European Organisation for the Safety of Air Navigation.")
 
 # You can also include any package-wide constants or configuration settings here
 #PACKAGE_CONSTANT = "This is a package-wide constant."
