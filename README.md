@@ -88,7 +88,7 @@ HexAeroPy is licensed under the MIT License - see the [LICENSE](LICENSE) file fo
 
 ## Credits and Acknowledgments
 
-Special thanks to EUROCONTROL.
+Special thanks to [EUROCONTROL](https://www.eurocontrol.int/) and the [Performance Review Commission (PRC)](https://ansperformance.eu/about/prc/).
 
 ## Contact Information
 
