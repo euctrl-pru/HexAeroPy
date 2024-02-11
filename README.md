@@ -1,3 +1,5 @@
+<img style='border: 1px solid black' align="right" width="300" src="https://github.com/euctrl-pru/HexAeroPy/blob/main/assets/hexaeropy_logo.png" alt="HexAeroPy logo" />
+
 # HexAeroPy
 
 ## Introduction
