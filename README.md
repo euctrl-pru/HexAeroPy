@@ -1,4 +1,4 @@
-![License](https://img.shields.io/pypi/l/HexAeroPy.svg) ![PyPI version](https://img.shields.io/pypi/v/HexAeroPy)   [![PyPI downloads](https://img.shields.io/pypi/dm/HexAeroPy)](https://pypi.org/project/HexAeroPy)
+![License](https://img.shields.io/pypi/l/HexAeroPy.svg) [![PyPI version](https://img.shields.io/pypi/v/HexAeroPy)](https://pypi.org/project/HexAeroPy)   [![PyPI downloads](https://img.shields.io/pypi/dm/HexAeroPy)](https://pypi.org/project/HexAeroPy)
 <img style='border: 1px solid black' align="right" width="300" src="https://raw.githubusercontent.com/euctrl-pru/HexAeroPy/main/assets/hexaeropy_logo.png" alt="HexAeroPy logo" />
 
 # HexAeroPy
