@@ -3,8 +3,6 @@
 
 # HexAeroPy
 
-## Introduction
-
 HexAeroPy is a EUROCONTROL Python package designed for aviation professionals and data analysts. It allows for the determination of used airports, runways, taxiways, and stands based on available (ADS-B) flight trajectory coordinates. This tool aims to enhance aviation data analysis, facilitating the extraction of milestones for performance analysis.
 
 ## Features
