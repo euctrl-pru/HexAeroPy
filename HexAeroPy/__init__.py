@@ -57,9 +57,12 @@ def setup_data_directory(base_dir):
     Sets up the data directory by downloading and extracting necessary datasets.
     """
     urls = [
-        "https://www.eurocontrol.int/performance/data/download/other/hexaero/airport_hex.zip",
-        "https://www.eurocontrol.int/performance/data/download/other/hexaero/runway_hex.zip",
-        "https://www.eurocontrol.int/performance/data/download/other/hexaero/test_data.zip"
+        "https://zenodo.org/records/10651018/files/airport_hex.zip?download=1",
+        "https://zenodo.org/records/10651018/files/runway_hex.zip?download=1", 
+        "https://zenodo.org/records/10651018/files/test_data.zip?download=1"
+        #"https://www.eurocontrol.int/performance/data/download/other/hexaero/airport_hex.zip",
+        #"https://www.eurocontrol.int/performance/data/download/other/hexaero/runway_hex.zip",
+        #"https://www.eurocontrol.int/performance/data/download/other/hexaero/test_data.zip"
     ]
     for url in urls:
         download_and_extract_zip(url, base_dir)
