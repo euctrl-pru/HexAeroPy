@@ -81,7 +81,7 @@ def ensure_data_available():
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
     required_files = ['airport_hex.parquet', 'runway_hex.parquet', 'test_data.parquet']  # Adjusted for parquet files
 
-    if not all(os.path.exists(os.path.join(data_dir, f)) for f in required_files):
+    if not all(os.path.exists(os.path.join(data_dir, f.replace('.parquet', '/'))) for f in required_files):
         user_response = input("Required metadata parquet files not found. Download (~200MB) and setup now? [y/n]: ")
         if user_response.lower() == 'y':
             print("Downloading required data files...")
