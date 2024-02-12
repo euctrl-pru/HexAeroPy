@@ -14,7 +14,9 @@ setup(
         'pandas>=1.5.2',
         'matplotlib>=3.6.3',
         'geojson>=3.1.0',
-        'folium>=0.14.0'
+        'folium>=0.14.0',
+        'requests>=2.30.0',
+        'tqdm>=4.66.2'
     ],
     author='Quinten Goens',
     author_email='quinten.goens@eurocontrol.int',
