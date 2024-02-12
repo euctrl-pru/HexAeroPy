@@ -1,3 +1,4 @@
+![License](https://img.shields.io/pypi/l/HexAeroPy.svg) ![PyPI version](https://img.shields.io/pypi/v/HexAeroPy)   [![PyPI downloads](https://img.shields.io/pypi/dm/HexAeroPy)](https://pypi.org/project/HexAeroPy)
 <img style='border: 1px solid black' align="right" width="300" src="https://raw.githubusercontent.com/euctrl-pru/HexAeroPy/main/assets/hexaeropy_logo.png" alt="HexAeroPy logo" />
 
 # HexAeroPy
@@ -27,7 +28,7 @@ Get started with HexAeroPy by running the following Python code:
 from HexAeroPy import *
 ```
 
-This will prompt you to download the metadata from Zenodo. These parquet datasets are available here: [https://zenodo.org/records/10651018](https://zenodo.org/records/10651018). 
+This will prompt you to download the geospatial metadata from Zenodo necessary to run the package. It will only cache once. The parquet datasets are available here: [https://zenodo.org/records/10651018](https://zenodo.org/records/10651018). 
 
 ```python
 # Load test data
