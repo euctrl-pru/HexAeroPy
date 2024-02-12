@@ -28,6 +28,12 @@ def download_and_extract_zip(url, extract_to):
     - url (str): The URL of the ZIP file to download.
     - extract_to (str): The directory path where the contents of the ZIP file should be extracted.
     """
+    
+    # Ensure the extract_to directory exists
+    if not os.path.exists(extract_to):
+        print(f"Creating directory {extract_to}...")
+        os.makedirs(extract_to, exist_ok=True)
+    
     print(f"Downloading data from {url}...")
     local_zip_path = os.path.join(extract_to, os.path.basename(url))
     response = requests.get(url, stream=True)
