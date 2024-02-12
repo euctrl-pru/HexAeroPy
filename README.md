@@ -1,10 +1,10 @@
-<img style='border: 1px solid black' align="right" width="300" src="https://github.com/euctrl-pru/HexAeroPy/blob/main/assets/hexaeropy_logo.png" alt="HexAeroPy logo" />
+<img style='border: 1px solid black' align="right" width="300" src="https://raw.githubusercontent.com/euctrl-pru/HexAeroPy/main/assets/hexaeropy_logo.png" alt="HexAeroPy logo" />
 
 # HexAeroPy
 
 ## Introduction
 
-HexAeroPy is a EUROCONTROL Python package designed for aviation professionals and data analysts. It allows for the determination of used airports, runways, taxiways, and stands based on available flight trajectory coordinates. This tool aims to enhance aviation data analysis, facilitating the extraction of milestones for performance analysis.
+HexAeroPy is a EUROCONTROL Python package designed for aviation professionals and data analysts. It allows for the determination of used airports, runways, taxiways, and stands based on available (ADS-B) flight trajectory coordinates. This tool aims to enhance aviation data analysis, facilitating the extraction of milestones for performance analysis.
 
 ## Features
 
@@ -16,7 +16,7 @@ HexAeroPy is a EUROCONTROL Python package designed for aviation professionals an
 To install HexAeroPy, ensure you have Python 3.9+ installed. Then run the following command:
 
 ``` bash
-pip install git+https://github.com/euctrl-pru/hexaeropy.git
+pip install HexAeroPy
 ```
 
 ## Quick Start
@@ -25,7 +25,11 @@ Get started with HexAeroPy by running the following Python code:
 
 ``` python
 from HexAeroPy import *
+```
 
+This will prompt you to download the metadata from Zenodo. These parquet datasets are available here: [https://zenodo.org/records/10651018](https://zenodo.org/records/10651018). 
+
+```python
 # Load test data
 
 df = load_dataset(name='trajectories.parquet', datatype='test_data')
@@ -71,9 +75,9 @@ add_trajectory(map_viz, df)
 map_viz.save('egll_arrival.html')
 ```
 
-![Runway detection](assets/egll_departure.png "Departure of a flight of runway 09R/27L at EGLL as detected by HexAeroPy.")
+![Runway detection](https://raw.githubusercontent.com/euctrl-pru/HexAeroPy/main/assets/egll_departure.png "Departure of a flight of runway 09R/27L at EGLL as detected by HexAeroPy.")
 
-Download the HTML here: [egll_departure.html](assets/egll_departure.html)
+Download the HTML here: [egll_departure.html](https://github.com/euctrl-pru/HexAeroPy/blob/main/assets/egll_departure.html)
 
 ## Development Roadmap
 
@@ -86,7 +90,7 @@ We welcome contributions to HexAeroPy! Feel free to submit pull requests, report
 
 ## License
 
-HexAeroPy is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+HexAeroPy is licensed under the MIT License - see the [LICENSE](https://github.com/euctrl-pru/HexAeroPy/blob/main/LICENSE) file for details.
 
 ## Credits and Acknowledgments
 
