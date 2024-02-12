@@ -1,3 +1,5 @@
+<img style='border: 1px solid black' align="right" width="300" src="https://github.com/euctrl-pru/HexAeroPy/blob/main/assets/hexaeropy_logo.png" alt="HexAeroPy logo" />
+
 # HexAeroPy
 
 ## Introduction
@@ -88,7 +90,7 @@ HexAeroPy is licensed under the MIT License - see the [LICENSE](LICENSE) file fo
 
 ## Credits and Acknowledgments
 
-Special thanks to EUROCONTROL.
+Special thanks to [EUROCONTROL](https://www.eurocontrol.int/) and the [Performance Review Commission (PRC)](https://ansperformance.eu/about/prc/).
 
 ## Contact Information
 
