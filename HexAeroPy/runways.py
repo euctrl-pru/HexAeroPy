@@ -109,8 +109,6 @@ def identify_potential_airports(df, track_id_col = 'id', hex_id_col='hex_id', ap
     # Merge the start and end DataFrames on 'id_x' and 'ident'
     apt_detections_df = pd.merge(start_df, end_df, on=[track_id_col, 'ident'], how='outer')
 
-    apt_detections_df = pd.merge(start_df, end_df, on=[track_id_col, 'ident'], how='outer')
-
     core = [track_id_col, 'ident', 'start_time',  'start_statevector_id', 'end_time', 'end_statevector_id']
     apt_detections_df = apt_detections_df[core]
 
@@ -301,11 +299,13 @@ def score_and_apply_heuristics(df, det):
                        1*approach_detected_weight + # For all flights in this dataset an approach is detected (i.e., they entered the approach cone)
                        result['runway_detected'].apply(int)*rwy_detected_weight + 
                        result['high_number_intersections'].apply(int)*high_number_intersections_weight + 
-                       result['low_minimal_distance'].apply(int)*touched_closest_segment_to_rw_weight + 
+                       result['low_minimal_distance'].apply(int)*low_minimal_distance_weight + 
                        result['touched_closest_segment_to_rw'].apply(int)*touched_closest_segment_to_rw_weight + 
                        result['touched_second_closest_segment_to_rw'].apply(int)*touched_second_closest_segment_to_rw_weight
                       ) / max_score * 100
+    return(result)
 
+def tmp(result):
     result = result.reset_index(drop=True)
 
     result = result.merge(det,on=['id_x', 'apt_det_id', 'rwy_det_id', 'airport_ident','le_ident','he_ident'], how ='left')
@@ -349,6 +349,7 @@ def score_and_apply_heuristics(df, det):
     rwy_determined = rwy_winner.merge(rwy_losers, on=['id','apt_det_id','airport_ident'], how='left')
 
     return rwy_determined
+
 
 def identify_runways(df, track_id_col = 'id', longitude_col = 'lon', latitude_col = 'lat', baroaltitude_col = 'baroaltitude'):
     
