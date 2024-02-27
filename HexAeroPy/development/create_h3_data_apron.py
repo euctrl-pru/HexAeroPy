@@ -6,6 +6,7 @@ import json
 import pandas as pd
 import matplotlib
 import h3
+import os.path
 
 def hexagons_dataframe_to_geojson(df_hex, file_output=None):
     """
@@ -99,9 +100,6 @@ airports_df = pd.read_csv('https://davidmegginson.github.io/ourairports-data/air
 
 # Filter the DataFrame
 airports_df = airports_df[
-    (airports_df['ident'].str.startswith('E') |
-     airports_df['ident'].str.startswith('L') |
-     airports_df['ident'].str.startswith('U')) &
     (airports_df['type'].isin(['large_airport', 'medium_airport']))][['ident', 'latitude_deg', 'longitude_deg', 'elevation_ft', 'type']]
 
 print(f"There are {len(airports_df)} airports to process...")
@@ -357,6 +355,10 @@ for apt_icao in airports_df.ident.to_list():
     # Radius around which airport elements are searched within OSM
     radius = 5000 
     res = 12
+    if os.path.isfile(f'data/apron_hex/h3_res_{res}_apron_{apt_icao}.parquet'):
+      print('FILE EXISTS - Skipping...')
+      continue
+
     try: 
         df, latitude, longitude = hexagonify_airport(
             apt_icao, 
