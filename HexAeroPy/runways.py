@@ -361,7 +361,7 @@ def identify_runways(df, track_id_col = 'id', longitude_col = 'lon', latitude_co
     
     df_f_low_alt = filter_low_altitude_statevectors(df_w_baroalt_ft_fl, baroalt_ft_col = 'baroaltitude_ft', threshold=5000)
     
-    apt_detections_df = identify_potential_airports(df_f_low_alt, track_id_col = track_id_col, hex_id_col='hex_id', apt_types = ['large_airport'])
+    apt_detections_df = identify_potential_airports(df_f_low_alt, track_id_col = track_id_col, hex_id_col='hex_id', apt_types = ['large_airport', 'medium_airport'])
     
     rwy_detections_df = identify_runways_from_low_trajectories(apt_detections_df,df_f_low_alt)
     
