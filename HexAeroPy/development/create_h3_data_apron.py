@@ -80,12 +80,6 @@ def choropleth_map(df_aggreg, column_name="value", border_color='black', fill_op
 
 # Dev
 
-
-
-
-
-
-
 import pandas as pd
 import requests
 from shapely.geometry import LineString, Polygon
@@ -357,6 +351,7 @@ for apt_icao in airports_df.ident.to_list():
     res = 12
     if os.path.isfile(f'data/apron_hex/h3_res_{res}_apron_{apt_icao}.parquet'):
       print('FILE EXISTS - Skipping...')
+      print()
       continue
 
     try: 
@@ -371,33 +366,52 @@ for apt_icao in airports_df.ident.to_list():
             mp_width_runways = 1.5, # In case you need a buffer around your object, multiply > 1. 
             mp_width_taxiways = 1.5,
             mp_width_parking = 1.5)
-
-        s = ['apt_icao', 'ref', 'hex_id', 'hex_latitude', 'hex_longitude', 'hex_res']
+        
+        s = ['apt_icao', 'hex_id', 'hex_latitude', 'hex_longitude', 'hex_res']
         df[s + [x for x in df.columns if x not in s + ['geometry', 'polygon']]].to_parquet(f'data/apron_hex/h3_res_{res}_apron_{apt_icao}.parquet')
         print()
     except Exception as e: 
         print(f"Failed to process {apt_icao}. Error: {e}")
         print()
+        continue
     
     try:
       print(f"Creating viz for {apt_icao}...")
-      df_viz = df[['aeroway', 'length', 'ref', 'surface', 'width', 'id', 'color_type','hex_id']]
+      
+      columns = ['aeroway', 'width', 'id', 'color_type','hex_id'] 
+      tt_columns = ['aeroway', 'width', 'id']
+      
+      if 'length' in df.columns:
+        columns = columns + ['length']
+        tt_columns = tt_columns + ['length']
+        
+      if 'ref' in df.columns:
+        columns = columns + ['ref']
+        tt_columns = tt_columns + ['ref']
+      
+      if 'surface' in df.columns: 
+        columns = columns + ['surface']
+        tt_columns = tt_columns + ['surface']
+      
+      if len(df) < 10000:
+        df_viz = df[columns]
 
-      m = choropleth_map(
-          df_viz,
-          column_name='color_type',
-          border_color='black',
-          fill_opacity=0.7,
-          color_map_name='Reds',
-          initial_map=None,
-          initial_location=[latitude, longitude],
-          initial_zoom = 14,
-          tooltip_columns = ['aeroway', 'length', 'ref', 'surface', 'width', 'id']
-      )
+        m = choropleth_map(
+            df_viz,
+            column_name='color_type',
+            border_color='black',
+            fill_opacity=0.7,
+            color_map_name='Reds',
+            initial_map=None,
+            initial_location=[latitude, longitude],
+            initial_zoom = 14,
+            tooltip_columns = tt_columns
+        )
 
-      m.save(f'data/apron_hex_viz/{apt_icao}.html')
+        m.save(f'data/apron_hex_viz/h3_res_{res}_apron_{apt_icao}_visualization.html')
     except Exception as e:
       print(f"Visualization failed for {apt_icao}. Error: {e}")
+      print()
     
 # Construct the file pattern to match
 file_pattern = f"data/apron_hex/*"

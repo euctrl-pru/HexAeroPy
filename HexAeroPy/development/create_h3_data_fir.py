@@ -17,7 +17,7 @@ from datetime import datetime
 
 # Settings
 project = "project_aiu"
-resolutions = [7,8,9,10]
+resolutions = [7] # higher there's a lot of data...
 
 for resolution in resolutions:
     print(f"Working on resolution: {resolution}")
