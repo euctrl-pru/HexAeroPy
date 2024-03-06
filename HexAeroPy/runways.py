@@ -1,6 +1,6 @@
 import pandas as pd
 import pkg_resources
-import h3
+import h3pandas
 from datetime import datetime
 import logging
 
