@@ -1,6 +1,8 @@
 import pandas as pd
 import pkg_resources
 import h3
+from datetime import datetime
+import logging
 
 # Limitation: The current id should represent a flight from ADEP to ADES. If the ID does not represent this, max score vote would mess up the result.
 # Solution: Create a new ID which checks whether the flight is one flight, otherwise it would detect and split the id in multiple ids.  
@@ -147,14 +149,17 @@ def identify_runways_from_low_trajectories(apt_detections_df, df_f_low_alt):
         df_single = df_single.reset_index()
 
         core_cols_rwy = ['id', 'airport_ref', 'airport_ident', 'gate_id', 'hex_id', 'gate_id_nr','le_ident','he_ident']
+        try:
+            df_rwys = load_dataset(name = f'h3_res_11_rwy_{apt}.parquet', datatype = 'runway_hex')
+            df_rwys = df_rwys[core_cols_rwy]
 
-        df_rwys = load_dataset(name = f'{apt}.parquet', datatype = 'runway_hex')
-        df_rwys = df_rwys[core_cols_rwy]
+            df_hex_rwy = df_single.merge(df_rwys,left_on='hex_id_11', right_on='hex_id', how='left')
 
-        df_hex_rwy = df_single.merge(df_rwys,left_on='hex_id_11', right_on='hex_id', how='left')
-
-        result = df_hex_rwy.groupby(['apt_det_id', 'id_x','airport_ident', 'gate_id','le_ident','he_ident'])['time'].agg([min,max]).reset_index().sort_values('min')
-        return result
+            result = df_hex_rwy.groupby(['apt_det_id', 'id_x','airport_ident', 'gate_id','le_ident','he_ident'])['time'].agg([min,max]).reset_index().sort_values('min')
+            return result
+        except Exception as e:
+            logging.warning(f'Warning: Due to limited data in OurAirports, airport ['{apt}'] does not have the runway config. No matching for this airport.')
+            return pd.DataFrame.from_dict({'id_apt':[], 'airport_ident':[], 'gate_id':[]})
 
     dfs = apt_detections_df.apply(lambda l: match_runways_to_hex(result_df, l['apt_det_id'],l['apt_det_ident']),axis=1).to_list()
 
@@ -275,11 +280,11 @@ def score_and_apply_heuristics(df, det):
     result = result.merge(rwy_result, on=rwy_result_cols, how = 'left')
 
     result['runway_detected'] = result['runway_detected'].fillna(False)
-
-    result = result[result['gate_type']!='runway_hexagons']
-
+    
     result['high_number_intersections'] = result['intersected_subsections']>5
 
+    result['minimal_number_intersections'] = result['intersected_subsections']>2
+    
     result['low_minimal_distance'] = result['minimal_distance_runway']<5
 
     result['touched_closest_segment_to_rw'] = result['minimal_distance_runway']==1
@@ -295,7 +300,7 @@ def score_and_apply_heuristics(df, det):
 
     max_score = approach_detected_weight + rwy_detected_weight + high_number_intersections_weight + low_minimal_distance_weight + touched_closest_segment_to_rw_weight + touched_second_closest_segment_to_rw_weight
 
-    result['score'] = (
+    result['score'] = result['minimal_number_intersections'].apply(int) * (
                        1*approach_detected_weight + # For all flights in this dataset an approach is detected (i.e., they entered the approach cone)
                        result['runway_detected'].apply(int)*rwy_detected_weight + 
                        result['high_number_intersections'].apply(int)*high_number_intersections_weight + 
@@ -303,6 +308,9 @@ def score_and_apply_heuristics(df, det):
                        result['touched_closest_segment_to_rw'].apply(int)*touched_closest_segment_to_rw_weight + 
                        result['touched_second_closest_segment_to_rw'].apply(int)*touched_second_closest_segment_to_rw_weight
                       ) / max_score * 100
+    
+    result = result[result['score'] > 10] # Minimal requirement to ensure quality. Otherwise it's just a touch
+    
     return(result)
 
 def tmp(result):
@@ -353,22 +361,34 @@ def tmp(result):
 
 def identify_runways(df, track_id_col = 'id', longitude_col = 'lon', latitude_col = 'lat', baroaltitude_col = 'baroaltitude'):
     
+    print('[HexAero for R - Starting engines...]')
+    
+    print(f'[STAGE 1] Reading statevectors... ('{datetime.now()}')')
     df_w_id = add_statevector_id(df)
     
+    print(f'[STAGE 2] Adding hex ids... ({datetime.now()})')
     df_w_hex = add_hex_ids(df_w_id, longitude_col=longitude_col, latitude_col=latitude_col,  resolutions=[5, 11])
     
+    print(f'[STAGE 3] Converting baroaltitudes to FL... ({datetime.now()}))
     df_w_baroalt_ft_fl = convert_baroalt_in_m_to_ft_and_FL(df_w_hex, baroaltitude_col = baroaltitude_col)
     
+    print(f'[STAGE 4] Filtering low altitudes for airport matching... ({datetime.now()}))
     df_f_low_alt = filter_low_altitude_statevectors(df_w_baroalt_ft_fl, baroalt_ft_col = 'baroaltitude_ft', threshold=5000)
     
-    apt_detections_df = identify_potential_airports(df_f_low_alt, track_id_col = track_id_col, hex_id_col='hex_id', apt_types = ['large_airport'])
+    print(f'[STAGE 5] Finding matching airports... ({datetime.now()}))
+    apt_detections_df = identify_potential_airports(df_f_low_alt, track_id_col = track_id_col, hex_id_col='hex_id', apt_types = ['large_airport', 'medium_airport'])
     
+    print(f'[STAGE 6] Finding matching runways... ({datetime.now()}))
     rwy_detections_df = identify_runways_from_low_trajectories(apt_detections_df,df_f_low_alt)
     
+    print(f'[STAGE 7] Applying heuristics to determine most likely runways... ({datetime.now()}))
     rwy_detections_df, det = manipulate_df_and_determine_arrival_departure(rwy_detections_df)
     
+    print(f'[STAGE 3] Converting baroaltitudes to FL... ({datetime.now()}))
     scored_rwy_detections_df = score_and_apply_heuristics(rwy_detections_df, det)
     
+    print(f'[DONE] Thank you for flying with HexAero... ({datetime.now()}))
+         
     return scored_rwy_detections_df,rwy_detections_df
     
 # Trajectories
