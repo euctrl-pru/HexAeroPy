@@ -67,11 +67,12 @@ def ensure_data_available(local_install = False):
         data_dir = os.path.join('..', 'data')
     else: 
         data_dir = os.path.join(__file__.replace('/setup_module.py', ''), 'data')
-    required_files = ['airport_hex.parquet', 'runway_hex.parquet', 'test_data.parquet']  # Adjusted for parquet files
+    required_folders = ['airport_hex', 'runway_hex', 'test_data']  # Adjusted for parquet files
 
-    if not all(os.path.exists(os.path.join(data_dir, f.replace('.parquet', '/'))) for f in required_files):
+    if not all(os.path.exists(data_dir) for f in required_folders):
         user_response = input("Required metadata parquet files not found. Download (~600MB) and setup now? [y/n]: ")
         if user_response.lower() == 'y':
+            print()
             print("Downloading required data files...")
             setup_data_directory(data_dir)
         else:
