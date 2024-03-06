@@ -361,7 +361,7 @@ def tmp(result):
 
 def identify_runways(df, track_id_col = 'id', longitude_col = 'lon', latitude_col = 'lat', baroaltitude_col = 'baroaltitude'):
     
-    print('[HexAero for R - Starting engines...]')
+    print('[HexAero for Python - Starting engines...]')
     
     print(f'[STAGE 1] Reading statevectors... ('{datetime.now()}')')
     df_w_id = add_statevector_id(df)
@@ -383,13 +383,11 @@ def identify_runways(df, track_id_col = 'id', longitude_col = 'lon', latitude_co
     
     print(f'[STAGE 7] Applying heuristics to determine most likely runways... ({datetime.now()}))
     rwy_detections_df, det = manipulate_df_and_determine_arrival_departure(rwy_detections_df)
-    
-    print(f'[STAGE 3] Converting baroaltitudes to FL... ({datetime.now()}))
     scored_rwy_detections_df = score_and_apply_heuristics(rwy_detections_df, det)
     
     print(f'[DONE] Thank you for flying with HexAero... ({datetime.now()}))
          
-    return scored_rwy_detections_df,rwy_detections_df
+    return scored_rwy_detections_df, rwy_detections_df
     
 # Trajectories
 #df = pd.read_parquet('../data/2023-08-02-11.parquet')
