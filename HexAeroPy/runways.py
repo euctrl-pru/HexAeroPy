@@ -77,10 +77,6 @@ def identify_potential_airports(df, track_id_col = 'id', hex_id_col='hex_id', ap
     # Create list of possible arrival / departure airports
     arr_dep_apt = df.merge(airports_df, left_on='hex_id_5', right_on=hex_id_col, how='left')
     
-    print(df.columns)
-    print(airports_df.columns)
-    print(arr_dep_apt.columns)
-    
     # Convert the 'time' column to datetime format if it's not already
     arr_dep_apt['time'] = pd.to_datetime(arr_dep_apt['time'])
 
