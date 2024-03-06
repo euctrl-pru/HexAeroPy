@@ -42,11 +42,11 @@ def add_hex_ids(df, longitude_col='lon', latitude_col ='lat', resolutions=[5, 11
     """
     
     for res in resolutions:
-        df[f'hex_id_{res}'] = df.apply(lambda row: h3.geo_to_h3(row[latitude_col], row[longitude_col], res), axis=1)
+        df = df.h3.geo_to_h3(res, lat_col = latitude_col, lng_col = longitude_col, set_index=False)
+        df = df.rename({f'h3_{"{:02d}".format(res)}':f'hex_id_{res}'}, axis=1)
     return df
 
 # Convert altitudes to ft and FL
-
 def convert_baroalt_in_m_to_ft_and_FL(df, baroaltitude_col = 'baroaltitude'):
     """
     Converts barometric altitudes (in meter) to feet (ft) and flight levels (FL).
@@ -76,7 +76,11 @@ def identify_potential_airports(df, track_id_col = 'id', hex_id_col='hex_id', ap
     
     # Create list of possible arrival / departure airports
     arr_dep_apt = df.merge(airports_df, left_on='hex_id_5', right_on=hex_id_col, how='left')
-
+    
+    print(df.columns)
+    print(airports_df.columns)
+    print(arr_dep_apt.columns)
+    
     # Convert the 'time' column to datetime format if it's not already
     arr_dep_apt['time'] = pd.to_datetime(arr_dep_apt['time'])
 
@@ -158,7 +162,7 @@ def identify_runways_from_low_trajectories(apt_detections_df, df_f_low_alt):
             result = df_hex_rwy.groupby(['apt_det_id', 'id_x','airport_ident', 'gate_id','le_ident','he_ident'])['time'].agg([min,max]).reset_index().sort_values('min')
             return result
         except Exception as e:
-            logging.warning(f'Warning: Due to limited data in OurAirports, airport ['{apt}'] does not have the runway config. No matching for this airport.')
+            logging.warning(f'Warning: Due to limited data in OurAirports, airport [{apt}] does not have the runway config. No matching for this airport.')
             return pd.DataFrame.from_dict({'id_apt':[], 'airport_ident':[], 'gate_id':[]})
 
     dfs = apt_detections_df.apply(lambda l: match_runways_to_hex(result_df, l['apt_det_id'],l['apt_det_ident']),axis=1).to_list()
@@ -363,29 +367,29 @@ def identify_runways(df, track_id_col = 'id', longitude_col = 'lon', latitude_co
     
     print('[HexAero for Python - Starting engines...]')
     
-    print(f'[STAGE 1] Reading statevectors... ('{datetime.now()}')')
+    print(f'[STAGE 1] Reading statevectors... ({datetime.now()})')
     df_w_id = add_statevector_id(df)
     
     print(f'[STAGE 2] Adding hex ids... ({datetime.now()})')
     df_w_hex = add_hex_ids(df_w_id, longitude_col=longitude_col, latitude_col=latitude_col,  resolutions=[5, 11])
     
-    print(f'[STAGE 3] Converting baroaltitudes to FL... ({datetime.now()}))
+    print(f'[STAGE 3] Converting baroaltitudes to FL... ({datetime.now()})')
     df_w_baroalt_ft_fl = convert_baroalt_in_m_to_ft_and_FL(df_w_hex, baroaltitude_col = baroaltitude_col)
     
-    print(f'[STAGE 4] Filtering low altitudes for airport matching... ({datetime.now()}))
+    print(f'[STAGE 4] Filtering low altitudes for airport matching... ({datetime.now()})')
     df_f_low_alt = filter_low_altitude_statevectors(df_w_baroalt_ft_fl, baroalt_ft_col = 'baroaltitude_ft', threshold=5000)
     
-    print(f'[STAGE 5] Finding matching airports... ({datetime.now()}))
+    print(f'[STAGE 5] Finding matching airports... ({datetime.now()})')
     apt_detections_df = identify_potential_airports(df_f_low_alt, track_id_col = track_id_col, hex_id_col='hex_id', apt_types = ['large_airport', 'medium_airport'])
     
-    print(f'[STAGE 6] Finding matching runways... ({datetime.now()}))
+    print(f'[STAGE 6] Finding matching runways... ({datetime.now()})')
     rwy_detections_df = identify_runways_from_low_trajectories(apt_detections_df,df_f_low_alt)
     
-    print(f'[STAGE 7] Applying heuristics to determine most likely runways... ({datetime.now()}))
+    print(f'[STAGE 7] Applying heuristics to determine most likely runways... ({datetime.now()})')
     rwy_detections_df, det = manipulate_df_and_determine_arrival_departure(rwy_detections_df)
     scored_rwy_detections_df = score_and_apply_heuristics(rwy_detections_df, det)
     
-    print(f'[DONE] Thank you for flying with HexAero... ({datetime.now()}))
+    print(f'[DONE] Thank you for flying with HexAero... ({datetime.now()})')
          
     return scored_rwy_detections_df, rwy_detections_df
     

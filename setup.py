@@ -16,7 +16,8 @@ setup(
         'geojson>=3.1.0',
         'folium>=0.14.0',
         'requests>=2.27.0',
-        'tqdm>=4.0.0'
+        'tqdm>=4.0.0', 
+        'h3pandas>=0.2.6'
     ],
     author='Quinten Goens',
     author_email='quinten.goens@eurocontrol.int',

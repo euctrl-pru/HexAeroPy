@@ -15,10 +15,10 @@ def download_and_extract_zip(url, extract_to):
     
     # Ensure the extract_to directory exists
     if not os.path.exists(extract_to):
-        print(f"Creating directory {extract_to}...")
+        print(f"\nCreating directory {extract_to}...")
         os.makedirs(extract_to, exist_ok=True)
     
-    print(f"Downloading data from {url}...")
+    print(f"\nDownloading data from {url}...")
     local_zip_path = os.path.join(extract_to, os.path.basename(url))
     response = requests.get(url, stream=True)
     response.raise_for_status()
@@ -57,7 +57,7 @@ def setup_data_directory(base_dir):
     for url in urls:
         download_and_extract_zip(url, base_dir)
 
-def ensure_data_available(local_install = False):
+def ensure_data_available(auto_install = False, local_install = False):
     """
     Ensure that the necessary data files are available, and download them if not.
     This function asks for user permission before downloading the data.
@@ -69,11 +69,14 @@ def ensure_data_available(local_install = False):
         data_dir = os.path.join(__file__.replace('/setup_module.py', ''), 'data')
     required_folders = ['airport_hex', 'runway_hex', 'test_data']  # Adjusted for parquet files
 
-    if not all(os.path.exists(data_dir) for f in required_folders):
-        user_response = input("Required metadata parquet files not found. Download (~600MB) and setup now? [y/n]: ")
-        if user_response.lower() == 'y':
-            print()
-            print("Downloading required data files...")
+    if not all(os.path.exists(os.path.join(data_dir, f)) for f in required_folders):
+        if auto_install:
+            print("[Downloading required data files...]")
             setup_data_directory(data_dir)
         else:
-            print("Data download skipped. The package requires data files to function properly.")
+            user_response = input("Required metadata parquet files not found. Download (~600MB) and setup now? [y/n]: ")
+            if user_response.lower() == 'y':
+                print("\n[Downloading required data files...]")
+                setup_data_directory(data_dir)
+            else:
+                print("Data download skipped. The package requires data files to function properly.")
