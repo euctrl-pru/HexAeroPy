@@ -311,9 +311,6 @@ def score_and_apply_heuristics(df, det):
     
     result = result[result['score'] > 10] # Minimal requirement to ensure quality. Otherwise it's just a touch
     
-    return(result)
-
-def tmp(result):
     result = result.reset_index(drop=True)
 
     result = result.merge(det,on=['id_x', 'apt_det_id', 'rwy_det_id', 'airport_ident','le_ident','he_ident'], how ='left')
