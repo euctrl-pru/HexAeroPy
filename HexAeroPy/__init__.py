@@ -1,7 +1,7 @@
 # mypackage/__init__.py
 
 # Package version
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 # Specify what is available to import from the package
 __all__ = ["identify_runways", "choropleth_map", "load_dataset", "add_trajectory"]
