@@ -47,7 +47,7 @@ def setup_data_directory(base_dir):
     Sets up the data directory by downloading and extracting necessary datasets.
     """
     urls = [
-        "https://zenodo.org/records/10651018/files/airport_hex.zip?download=1",
+        "https://zenodo.org/records/10797224/files/airport_hex.zip?download=1",
         "https://zenodo.org/records/10729365/files/runway_hex.zip?download=1", 
         "https://zenodo.org/records/10651018/files/test_data.zip?download=1"
         #"https://www.eurocontrol.int/performance/data/download/other/hexaero/airport_hex.zip",
