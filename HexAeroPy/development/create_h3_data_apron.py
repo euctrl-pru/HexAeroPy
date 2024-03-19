@@ -100,7 +100,7 @@ airports_df = airports_df[
 
 print(f"There are {len(airports_df)} airports to process...")
 
-def line_to_polygon(line, width_m):
+def line_to_polygon(line, width_m, always_xy=True):
     """
     Convert a LineString to a Polygon with a specified width in meters.
 
@@ -113,8 +113,8 @@ def line_to_polygon(line, width_m):
     """
     # Define the projection transformer
     # WGS 84 (latitude and longitude) to World Mercator projection
-    transformer_to_meters = Transformer.from_crs("EPSG:4326", "EPSG:3395", always_xy=True)
-    transformer_to_degrees = Transformer.from_crs("EPSG:3395", "EPSG:4326", always_xy=True)
+    transformer_to_meters = Transformer.from_crs("EPSG:4326", "EPSG:3395", always_xy=always_xy)
+    transformer_to_degrees = Transformer.from_crs("EPSG:3395", "EPSG:4326", always_xy=always_xy)
 
     # Transform the LineString to World Mercator projection (meters)
     line_in_meters = transform(transformer_to_meters.transform, line)
@@ -127,7 +127,7 @@ def line_to_polygon(line, width_m):
 
     return buffered_line_in_degrees
 
-def lines_to_polygons(lines, standard_width):
+def lines_to_polygons(lines, standard_width, always_xy = True):
     """
     Convert a collection of LineStrings to Polygons with a specified width in meters.
 
@@ -146,7 +146,16 @@ def lines_to_polygons(lines, standard_width):
         if pd.isna(width):
             width = standard_width
         width = width
-        polygons.append(line_to_polygon(line, width))
+        
+        polygon = line_to_polygon(line, width_m, always_xy=True)
+        
+        # Sometimes it happens that xy coordinates are switched and the polygon is empty...
+        # This causes the polygon to be empty and thus the area to be zero...
+        if polygon.area == 0: 
+            print('Coordinates for this airport are switched from the \'normal OSM\' (longitude, latitude) to (latitude longitude), examine at OSM!')
+            polygon = line_to_polygon(line, width_m, always_xy=False) 
+        
+        polygons.append(polygon)
     return polygons
 
 
@@ -368,7 +377,7 @@ def hexagonify_airport(
     
     parking_positions_df['width'] = parking_positions_df['width'].apply(safe_convert_to_float)
     parking_positions_df['width'] = parking_positions_df['width'].apply(lambda l: None if pd.isna(l) else l * mp_width_runways)
-    
+
     runways_df['polygon'] = lines_to_polygons(list(zip(runways_df.geometry.to_list(), runways_df.width.to_list())), standard_width_runways*mp_width_runways)
     taxiways_df['polygon'] = lines_to_polygons(list(zip(taxiways_df.geometry.to_list(), taxiways_df.width.to_list())), standard_width_taxiways*mp_width_taxiways)
     parking_positions_df['polygon'] = lines_to_polygons(list(zip(parking_positions_df.geometry.to_list(), parking_positions_df.width.to_list())), standard_width_parking*mp_width_parking)
@@ -385,7 +394,29 @@ def hexagonify_airport(
     taxiways_df['color_type'] = 5000 
     parking_positions_df['color_type'] = 10000 
 
-    df = pd.concat([runways_df, taxiways_df, parking_positions_df])
+    def filter_empty_na_columns(df):
+        """
+        Filters out columns that are completely empty or contain only NA values from a DataFrame.
+
+        Parameters:
+        - df: pandas.DataFrame
+
+        Returns:
+        - Filtered DataFrame with no completely empty or all-NA columns.
+        """
+        # Drop columns where all values are NA
+        df_filtered = df.dropna(axis=1, how='all')
+        # Further filter out columns that are entirely empty
+        df_filtered = df_filtered.loc[:, (df_filtered != '').any(axis=0)]
+        return df_filtered
+
+    # Apply the filtering function to each DataFrame
+    runways_df_filtered = filter_empty_na_columns(runways_df)
+    taxiways_df_filtered = filter_empty_na_columns(taxiways_df)
+    parking_positions_df_filtered = filter_empty_na_columns(parking_positions_df)
+
+    # Concatenate the filtered DataFrames
+    df = pd.concat([runways_df_filtered, taxiways_df_filtered, parking_positions_df_filtered])
     df = df.explode('h3_res10').rename({'h3_res10':'hex_id'},axis=1)
     df = df[~df.hex_id.isna()]
 
@@ -401,9 +432,9 @@ for apt_icao in airports_df.ident.to_list():
     radius = 5000 
     res = 12
     if os.path.isfile(f'data/apron_hex/h3_res_{res}_apron_{apt_icao}.parquet'):
-      print('FILE EXISTS - Skipping...')
-      print()
-      continue
+        print('FILE EXISTS - Skipping...')
+        print()
+        continue
 
     try: 
         df, latitude, longitude = hexagonify_airport(
@@ -427,24 +458,24 @@ for apt_icao in airports_df.ident.to_list():
         continue
     
     try:
-      print(f"Creating viz for {apt_icao}...")
-      
-      columns = ['aeroway', 'width', 'id', 'color_type','hex_id'] 
-      tt_columns = ['aeroway', 'width', 'id','avg_heading']
-      
-      if 'length' in df.columns:
+        print(f"Creating viz for {apt_icao}...")
+
+        columns = ['aeroway', 'width', 'id', 'color_type','hex_id'] 
+        tt_columns = ['aeroway', 'width', 'id','avg_heading']
+
+        if 'length' in df.columns:
         columns = columns + ['length']
         tt_columns = tt_columns + ['length']
-        
-      if 'ref' in df.columns:
+
+        if 'ref' in df.columns:
         columns = columns + ['ref']
         tt_columns = tt_columns + ['ref']
-      
-      if 'surface' in df.columns: 
+
+        if 'surface' in df.columns: 
         columns = columns + ['surface']
         tt_columns = tt_columns + ['surface']
-      
-      if len(df) < 10000:
+
+        if len(df) < 10000:
         df_viz = df[columns]
 
         m = choropleth_map(
@@ -461,8 +492,8 @@ for apt_icao in airports_df.ident.to_list():
 
         m.save(f'data/apron_hex_viz/h3_res_{res}_apron_{apt_icao}_visualization.html')
     except Exception as e:
-      print(f"Visualization failed for {apt_icao}. Error: {e}")
-      print()
+        print(f"Visualization failed for {apt_icao}. Error: {e}")
+        print()
     
 # Construct the file pattern to match
 file_pattern = f"data/apron_hex/*"
