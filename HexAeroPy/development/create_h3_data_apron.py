@@ -145,15 +145,14 @@ def lines_to_polygons(lines, standard_width, always_xy = True):
         width = x[1]
         if pd.isna(width):
             width = standard_width
-        width = width
         
-        polygon = line_to_polygon(line, width_m, always_xy=True)
+        polygon = line_to_polygon(line, width, always_xy=True)
         
         # Sometimes it happens that xy coordinates are switched and the polygon is empty...
         # This causes the polygon to be empty and thus the area to be zero...
         if polygon.area == 0: 
             print('Coordinates for this airport are switched from the \'normal OSM\' (longitude, latitude) to (latitude longitude), examine at OSM!')
-            polygon = line_to_polygon(line, width_m, always_xy=False) 
+            polygon = line_to_polygon(line, width, always_xy=False) 
         
         polygons.append(polygon)
     return polygons
@@ -456,41 +455,45 @@ for apt_icao in airports_df.ident.to_list():
         print(f"Failed to process {apt_icao}. Error: {e}")
         print()
         continue
-    
+
     try:
         print(f"Creating viz for {apt_icao}...")
 
-        columns = ['aeroway', 'width', 'id', 'color_type','hex_id'] 
-        tt_columns = ['aeroway', 'width', 'id','avg_heading']
+        columns = ['aeroway', 'id', 'avg_heading', 'color_type','hex_id'] 
+        tt_columns = ['aeroway', 'id','avg_heading']
 
         if 'length' in df.columns:
-        columns = columns + ['length']
-        tt_columns = tt_columns + ['length']
-
+            columns = columns + ['length']
+            tt_columns = tt_columns + ['length']
+        
+        if 'width' in df.columns:
+            columns = columns + ['width']
+            tt_columns = tt_columns + ['width']
+        
         if 'ref' in df.columns:
-        columns = columns + ['ref']
-        tt_columns = tt_columns + ['ref']
+            columns = columns + ['ref']
+            tt_columns = tt_columns + ['ref']
 
         if 'surface' in df.columns: 
-        columns = columns + ['surface']
-        tt_columns = tt_columns + ['surface']
+            columns = columns + ['surface']
+            tt_columns = tt_columns + ['surface']
 
         if len(df) < 10000:
-        df_viz = df[columns]
+            df_viz = df[columns]
 
-        m = choropleth_map(
-            df_viz,
-            column_name='color_type',
-            border_color='black',
-            fill_opacity=0.7,
-            color_map_name='Reds',
-            initial_map=None,
-            initial_location=[latitude, longitude],
-            initial_zoom = 14,
-            tooltip_columns = tt_columns
-        )
+            m = choropleth_map(
+                df_viz,
+                column_name='color_type',
+                border_color='black',
+                fill_opacity=0.7,
+                color_map_name='Reds',
+                initial_map=None,
+                initial_location=[latitude, longitude],
+                initial_zoom = 14,
+                tooltip_columns = tt_columns
+            )
 
-        m.save(f'data/apron_hex_viz/h3_res_{res}_apron_{apt_icao}_visualization.html')
+            m.save(f'data/apron_hex_viz/h3_res_{res}_apron_{apt_icao}_visualization.html')
     except Exception as e:
         print(f"Visualization failed for {apt_icao}. Error: {e}")
         print()
