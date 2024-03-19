@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib
 import h3
 import os.path
+from shapely.geometry import LineString
+import numpy as np
 
 def hexagons_dataframe_to_geojson(df_hex, file_output=None):
     """
@@ -272,6 +274,51 @@ def safe_convert_to_float(s):
     except ValueError:
         return None
 
+
+def calculate_bearing(pointA, pointB):
+    """
+    Calculate the bearing between two points.
+
+    Parameters:
+    - pointA: A tuple containing the longitude and latitude of the first point.
+    - pointB: A tuple containing the longitude and latitude of the second point.
+
+    Returns:
+    - Bearing in degrees from the North.
+    """
+    lon1, lat1 = np.radians(pointA)
+    lon2, lat2 = np.radians(pointB)
+
+    dLon = lon2 - lon1
+    x = np.sin(dLon) * np.cos(lat2)
+    y = np.cos(lat1) * np.sin(lat2) - np.sin(lat1) * np.cos(lat2) * np.cos(dLon)
+
+    bearing = np.arctan2(x, y)
+    bearing = np.degrees(bearing)
+    bearing = (bearing + 360) % 360
+
+    return bearing
+
+def average_heading_linestring(linestring):
+    """
+    Calculate the average heading of a LineString.
+
+    Parameters:
+    - linestring: A shapely.geometry.linestring.LineString object.
+
+    Returns:
+    - The average heading of the linestring in degrees.
+    """
+    points = list(linestring.coords)
+    bearings = []
+
+    for i in range(len(points) - 1):
+        bearing = calculate_bearing(points[i], points[i + 1])
+        bearings.append(bearing)
+
+    average_bearing = sum(bearings) / len(bearings) if bearings else None
+    return average_bearing
+    
 def hexagonify_airport(
     apt_icao, 
     radius,
@@ -329,7 +376,11 @@ def hexagonify_airport(
     runways_df['h3_res10'] = runways_df['polygon'].apply(lambda l: polygon_to_h3(l, resolution))
     taxiways_df['h3_res10'] = taxiways_df['polygon'].apply(lambda l: polygon_to_h3(l, resolution))
     parking_positions_df['h3_res10'] = parking_positions_df['polygon'].apply(lambda l: polygon_to_h3(l, resolution))
-
+    
+    runways_df['avg_heading'] = runways_df.geometry.apply(average_heading_linestring)
+    taxiways_df['avg_heading'] = taxiways_df.geometry.apply(average_heading_linestring)
+    parking_positions_df['avg_heading'] = parking_positions_df.geometry.apply(average_heading_linestring)
+    
     runways_df['color_type'] = 1 
     taxiways_df['color_type'] = 5000 
     parking_positions_df['color_type'] = 10000 
@@ -360,12 +411,12 @@ for apt_icao in airports_df.ident.to_list():
             radius,
             airports_df,
             resolution = res,
-            standard_width_runways = 50, # In case OSM does not have the width of the object this is the standard value
-            standard_width_taxiways = 30,
-            standard_width_parking = 25,
-            mp_width_runways = 1.5, # In case you need a buffer around your object, multiply > 1. 
-            mp_width_taxiways = 1.5,
-            mp_width_parking = 1.5)
+            standard_width_runways = 45, # In case OSM does not have the width of the object this is the standard value
+            standard_width_taxiways = 20,
+            standard_width_parking = 20,
+            mp_width_runways = 1, # In case you need a buffer around your object, multiply > 1. 
+            mp_width_taxiways = 1,
+            mp_width_parking = 1)
         
         s = ['apt_icao', 'hex_id', 'hex_latitude', 'hex_longitude', 'hex_res']
         df[s + [x for x in df.columns if x not in s + ['geometry', 'polygon']]].to_parquet(f'data/apron_hex/h3_res_{res}_apron_{apt_icao}.parquet')
@@ -379,7 +430,7 @@ for apt_icao in airports_df.ident.to_list():
       print(f"Creating viz for {apt_icao}...")
       
       columns = ['aeroway', 'width', 'id', 'color_type','hex_id'] 
-      tt_columns = ['aeroway', 'width', 'id']
+      tt_columns = ['aeroway', 'width', 'id','avg_heading']
       
       if 'length' in df.columns:
         columns = columns + ['length']
