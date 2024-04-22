@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf,from_unixtime, min, max, to_date, pandas_udf, col, PandasUDFType, lit, round
-from pyspark.sql.types import DoubleType, ArrayType, StructType, StructField, StringType
+from pyspark.sql.types import DoubleType, ArrayType, StructType, StructField, StringType, StructType
 from pyspark.sql import functions as F
 from pyspark.sql import Window
 
@@ -127,22 +127,53 @@ def generate_circle_polygon(lon, lat, radius_nautical_miles, num_points=360):
     
     return geojson_str
 
-def fill_circle_with_hexagons(polygon_json, resolution=8):
+def fill_polygon_with_hexagons(polygon_json, resolution=8):
+    """Fills a polygon defined by the given JSON with hexagons with defined resolution.
+
+    Args:
+        polygon_json (str): A JSON string defining the polygon.
+        resolution (int): The H3 resolution for the hexagons.
+
+    Returns:
+        list: The list contains the compact hexagon IDs.
+    """
     polygon = json.loads(polygon_json)
     hexagons = h3.polyfill(polygon, resolution, geo_json_conformant=True)
-    return list(hexagons)
+    return hexagons
+
+def fill_polygon_with_compact_hexagons(polygon_json, resolution=8):
+    """Fills a polygon defined by the given JSON with compact hexagons.
+
+    Args:
+        polygon_json (str): A JSON string defining the polygon.
+        resolution (int): The H3 resolution for the hexagons.
+
+    Returns:
+        tuple: A tuple containing two lists. The first list contains the compact hexagon IDs,
+               and the second list contains the resolutions of these hexagons.
+    """
+    hexagons = fill_circle_with_hexagons(polygon_json, resolution)
+    compact_hexagons = list(h3.compact_cells(hexagons))
+    compact_hexagons_resolutions = [h3.get_resolution(h) for h in compact_hexagons]
+    return compact_hexagons, compact_hexagons_resolutions
 
 generate_circle_polygon_udf = udf(generate_circle_polygon, StringType())
-fill_circle_with_hexagons_udf = udf(fill_circle_with_hexagons, ArrayType(StringType()))
+
+compact_hex_result_type = StructType([
+    StructField("compact_hexagons", ArrayType(StringType()), False),
+    StructField("compact_hexagons_resolutions", ArrayType(IntegerType()), False)
+])
+
+fill_circle_with_compact_hexagons_udf = udf(fill_circle_with_compact_hexagons, compact_hex_result_type))
 
 num_points = 360
-radia_nm = [5,10,15,20,25,30,35,40,45,50]
+radia_nm = [5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 
 pdfs = []
 failed_apts = []
 for radius_nm in radia_nm:
     print(f"Radius: {radius_nm}")
-    for resolution in [5]:
+    for resolution in [13]:
         pdfs = []
         failed_apts = []
         print('Resolution:', resolution)
@@ -159,7 +190,7 @@ for radius_nm in radia_nm:
                     )
                 ).withColumn(
                     "hex_id",
-                    fill_circle_with_hexagons_udf(
+                    fill_circle_with_compact_hexagons_udf(
                         "circle_polygon",
                         lit(resolution) # Resolution
                     )

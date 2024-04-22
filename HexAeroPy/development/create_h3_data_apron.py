@@ -9,6 +9,7 @@ import h3
 import os.path
 from shapely.geometry import LineString
 import numpy as np
+from scipy.stats import circmean
 
 def hexagons_dataframe_to_geojson(df_hex, file_output=None):
     """
@@ -324,7 +325,7 @@ def average_heading_linestring(linestring):
         bearing = calculate_bearing(points[i], points[i + 1])
         bearings.append(bearing)
 
-    average_bearing = sum(bearings) / len(bearings) if bearings else None
+    average_bearing = np.rad2deg(circmean(np.deg2rad(bearings))) if bearings else None
     return average_bearing
     
 def hexagonify_airport(
@@ -425,12 +426,14 @@ def hexagonify_airport(
     return df, latitude, longitude
 
 
+airports_df = airports_df[airports_df.ident == 'LSZH']
+
 for apt_icao in airports_df.ident.to_list():
     print(f"Processing {apt_icao}...")
     # Radius around which airport elements are searched within OSM
     radius = 5000 
     res = 12
-    if os.path.isfile(f'data/apron_hex/h3_res_{res}_apron_{apt_icao}.parquet'):
+    if os.path.isfile(f'data/apron_hex/h3_res_{res}_apron_{apt_icao}.parquet') and os.path.isfile(f'data/apron_hex_viz/h3_res_{res}_apron_{apt_icao}_visualization.parquet'):
         print('FILE EXISTS - Skipping...')
         print()
         continue
@@ -478,7 +481,7 @@ for apt_icao in airports_df.ident.to_list():
             columns = columns + ['surface']
             tt_columns = tt_columns + ['surface']
 
-        if len(df) < 10000:
+        if len(df) < 100000:
             df_viz = df[columns]
 
             m = choropleth_map(
@@ -499,14 +502,14 @@ for apt_icao in airports_df.ident.to_list():
         print()
     
 # Construct the file pattern to match
-file_pattern = f"data/apron_hex/*"
+#file_pattern = f"data/apron_hex/*"
 
 # Use glob to find all files matching the pattern
-files = glob.glob(file_pattern)
+#files = glob.glob(file_pattern)
 
-df_list = [pd.read_parquet(file) for file in files]
-concatenated_df = pd.concat(df_list, ignore_index=True)
+#df_list = [pd.read_parquet(file) for file in files]
+#concatenated_df = pd.concat(df_list, ignore_index=True)
 
 # Output the concatenated DataFrame to a single Parquet file
-output_file = f"data/apron_hex/h3_res_{res}_apron_all_airports.parquet"
-concatenated_df.to_parquet(output_file)
+#output_file = f"data/apron_hex/h3_res_{res}_apron_all_airports.parquet"
+#concatenated_df.to_parquet(output_file)
