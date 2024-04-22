@@ -511,5 +511,6 @@ for apt_icao in airports_df.ident.to_list():
 #concatenated_df = pd.concat(df_list, ignore_index=True)
 
 # Output the concatenated DataFrame to a single Parquet file
-#output_file = f"data/apron_hex/h3_res_{res}_apron_all_airports.parquet"
-#concatenated_df.to_parquet(output_file)
+
+output_file = f"data/apron_hex/h3_res_{res}_apron_all_airports.parquet"
+concatenated_df.to_parquet(output_file)
