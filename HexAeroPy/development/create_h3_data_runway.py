@@ -400,7 +400,7 @@ def create_hex_airport(icao_apt):
 
     exploded_df = melted_df.explode('hex_id')
     grouping_columns = [col for col in exploded_df.columns if col != 'hex_id']
-    deduped_df = exploded_df.drop_duplicates(subset=['hex_id'])
+    deduped_df = exploded_df.drop_duplicates(subset=['id','hex_id'])
     deduped_df['gate_id_nr'] = deduped_df.gate_id.astype('category').cat.codes*1000
     
     return deduped_df
