@@ -259,8 +259,8 @@ def create_low_numbered_approach_area_polygons(lat_le, lon_le, lat_he, lon_he, l
     far_end_width_km = width_km * far_end_width_factor
 
     # Create trapezoid for the lower-numbered end
-    le_end_lat, le_end_lon = calculate_new_lat_lon(lat_le, lon_le, length_km, heading)
-    polygons_low_numbered = create_single_approach_polygon(le_end_lat, le_end_lon, width_km, approach_length_km, max_approach_length_nmi, far_end_width_km, heading)
+    le_end_lat, le_end_lon = calculate_new_lat_lon(lat_le, lon_le, length_km/2, heading)
+    polygons_low_numbered = create_single_approach_polygon(le_end_lat, le_end_lon, width_km, approach_length_km, max_approach_length_nmi, far_end_width_km, heading, runway_width_mp = 4)
     return polygons_low_numbered
 
 def create_high_numbered_approach_area_polygons(lat_le, lon_le, lat_he, lon_he, length, width, heading, approach_length_nmi, max_approach_length_nmi = 10, far_end_width_factor=25):
@@ -271,8 +271,8 @@ def create_high_numbered_approach_area_polygons(lat_le, lon_le, lat_he, lon_he, 
 
     # Create trapezoid for the higher-numbered end
     opposite_heading = (heading + 180) % 360
-    he_end_lat, he_end_lon = calculate_new_lat_lon(lat_he, lon_he, length_km, opposite_heading)
-    polygons_high_numbered = create_single_approach_polygon(he_end_lat, he_end_lon, width_km, approach_length_km, max_approach_length_nmi, far_end_width_km, opposite_heading)
+    he_end_lat, he_end_lon = calculate_new_lat_lon(lat_he, lon_he, length_km/2, opposite_heading)
+    polygons_high_numbered = create_single_approach_polygon(he_end_lat, he_end_lon, width_km, approach_length_km, max_approach_length_nmi, far_end_width_km, opposite_heading, runway_width_mp = 4)
 
     return polygons_high_numbered
 
@@ -348,9 +348,7 @@ def create_hex_airport(icao_apt):
                 lit(max_approach_length_nmi),
                 lit(distance_nm/max_approach_length_nmi*far_end_width_factor)
             )
-        ).filter(
-          col(f"low_numbered_approach_polygons_distance_{distance_nm}_nm",).isNotNull()).filter(
-          col(f"high_numbered_approach_polygons_distance_{distance_nm}_nm",).isNotNull()).withColumn(
+        ).withColumn(
             f"low_numbered_approach_hexagons_{distance_nm}_nm",
             fill_hexagons_udf(f"low_numbered_approach_polygons_distance_{distance_nm}_nm")
         ).withColumn(
